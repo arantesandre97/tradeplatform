@@ -1,3 +1,16 @@
+#IDE
+.vscode/
+
+#Maven
+target/
+pom.xml.tag
+pom.xml.next
+pom.xml.bak
+release.properties
+.classpath
+.project
+.settings/
+
 # Compiled class file
 *.class
 
