@@ -1,14 +1,14 @@
-package org.mypersonalprojects.tradeplatform.model;
+package org.mypersonalprojects.tradeplatform.domain;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.mypersonalprojects.tradeplatform.utils.ValidateCpf;
 
 public class Account {
     private UUID id;
@@ -16,48 +16,57 @@ public class Account {
     private String email;
     private String document;
     private String password;
-    private HashMap<AssetEnum, Double> balance;
-
+    private List<Balance> balances;
 
     @JsonCreator
-    public Account(@JsonProperty("name") String name, 
-                   @JsonProperty("email") String email, 
-                   @JsonProperty("document") String document, 
-                   @JsonProperty("password") String password) {
+    public Account(@JsonProperty("name") String name,
+            @JsonProperty("email") String email,
+            @JsonProperty("document") String document,
+            @JsonProperty("password") String password) {
         this.id = UUID.randomUUID();
         this.name = isValidName(name);
         this.email = isValidEmail(email);
         this.document = isValidDocument(document);
         this.password = isValidPassword(password);
-        this.balance = new HashMap<>();
+        this.balances = new ArrayList<>();
     }
 
-    private Account(UUID id, String name, String email, String document, String password, HashMap<AssetEnum, Double> balance) {
+    private Account(UUID id, String name, String email, String document, String password, List<Balance> balances) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.document = document;
         this.password = password;
-        this.balance = balance;
+        this.balances = balances;
     }
 
-    public static Account restore(UUID id, String name, String email, String document, String password, HashMap<AssetEnum, Double> balance) {
-        return new Account(id, name, email, document, password, balance);
+    public static Account restore(UUID id, String name, String email, String document, String password,
+            List<Balance> balances) {
+        return new Account(id, name, email, document, password, balances);
     }
 
     public void depositAmount(AssetEnum asset, Double amount) {
-        if(amount < 0) throw new IllegalArgumentException("Amount must not be negative");
-        
-        balance.put(asset, balance.getOrDefault(asset, 0.0) + amount);
+        balances.stream()
+                .filter(b -> b.getAsset().equals(asset))
+                .findFirst()
+                .ifPresentOrElse(b -> b.depositAmount(amount), () -> {
+                    balances.add(new Balance(asset, amount));
+                });
     }
 
     public void withdrawAmount(AssetEnum asset, Double amount) throws Exception {
-        if(amount < 0) throw new IllegalArgumentException("Amount must not be negative");
-        if(!balance.containsKey(asset) || balance.get(asset) < amount) {
-            throw new Exception("Insufficient funds");
-        }
-
-        balance.put(asset, balance.get(asset) - amount);
+        balances.stream()
+                .filter(b -> b.getAsset().equals(asset))
+                .findFirst()
+                .ifPresentOrElse(b -> {
+                    try {
+                        b.withdrawAmount(amount);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                }, () -> {
+                    throw new RuntimeException("Insufficient funds");
+                });
     }
 
     private String isValidName(String name) {
@@ -86,9 +95,9 @@ public class Account {
 
     private String isValidPassword(String password) {
         if (password == null || !password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{8,}$")) {
-            throw new IllegalArgumentException("Invalid password");    
+            throw new IllegalArgumentException("Invalid password");
         }
-        
+
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] encodedhash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -114,12 +123,17 @@ public class Account {
         return document;
     }
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public String getPassword() {
         return password;
     }
 
-    public Double getBalance(AssetEnum asset) {
-        return balance.getOrDefault(asset, 0.0);
+    public List<Balance> getBalances() {
+        return balances;
+    }
+
+    public Balance getBalance(AssetEnum asset) {
+        return balances.stream()
+                .filter(b -> b.getAsset().equals(asset))
+                .findFirst().orElse(new Balance(asset, 0.0));
     }
 }

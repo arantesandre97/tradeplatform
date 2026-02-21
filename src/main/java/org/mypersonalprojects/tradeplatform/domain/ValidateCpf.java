@@ -1,4 +1,4 @@
-package org.mypersonalprojects.tradeplatform.utils;
+package org.mypersonalprojects.tradeplatform.domain;
 
 public class ValidateCpf {
     public static boolean isValid(String cpf) {

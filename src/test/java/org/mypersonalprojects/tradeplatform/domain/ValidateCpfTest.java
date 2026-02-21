@@ -1,4 +1,4 @@
-package org.mypersonalprojects.tradeplatform.utils;
+package org.mypersonalprojects.tradeplatform.domain;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

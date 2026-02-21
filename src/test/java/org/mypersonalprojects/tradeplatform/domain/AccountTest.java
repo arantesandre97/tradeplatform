@@ -1,6 +1,10 @@
-package org.mypersonalprojects.tradeplatform.model;
+package org.mypersonalprojects.tradeplatform.domain;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,11 +33,11 @@ public class AccountTest {
             "Password@123"
         );
 
-        Assertions.assertEquals("John Doe", newAccount.getName());
-        Assertions.assertEquals("john.doe@example.com", newAccount.getEmail());
-        Assertions.assertEquals("62573679055", newAccount.getDocument());
-        Assertions.assertNotEquals("Password@123", newAccount.getPassword());
-        Assertions.assertNotNull(newAccount.getPassword());
+        assertEquals("John Doe", newAccount.getName());
+        assertEquals("john.doe@example.com", newAccount.getEmail());
+        assertEquals("62573679055", newAccount.getDocument());
+        assertNotEquals("Password@123", newAccount.getPassword());
+        assertNotNull(newAccount.getPassword());
     }
 
     @Test
@@ -46,17 +50,17 @@ public class AccountTest {
             "Password@123"
         );
 
-        Assertions.assertEquals("John Doe", newAccount.getName());
-        Assertions.assertEquals("john.doe@example.com", newAccount.getEmail());
-        Assertions.assertEquals("62573679055", newAccount.getDocument());
-        Assertions.assertNotEquals("Password@123", newAccount.getPassword());
-        Assertions.assertNotNull(newAccount.getPassword());
+        assertEquals("John Doe", newAccount.getName());
+        assertEquals("john.doe@example.com", newAccount.getEmail());
+        assertEquals("62573679055", newAccount.getDocument());
+        assertNotEquals("Password@123", newAccount.getPassword());
+        assertNotNull(newAccount.getPassword());
     }
 
     @Test
     @DisplayName("Não deve criar conta sem sobrenome")
     void shouldNotCreateAnAccountWithoutLastName() {
-        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        var exception = assertThrows(IllegalArgumentException.class, () -> {
             new Account(
             "John", 
             "john.doe@example.com", 
@@ -65,13 +69,13 @@ public class AccountTest {
             );
         });
 
-        Assertions.assertEquals("Invalid name", exception.getMessage());
+        assertEquals("Invalid name", exception.getMessage());
     }
 
     @Test
     @DisplayName("Não deve criar conta com nome contendo caracteres especiais ou números")
     void shouldNotCreateAnAccountWithNameContainingSpecialCaractersAndNumbers() {
-        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        var exception = assertThrows(IllegalArgumentException.class, () -> {
             new Account(
             "John @123", 
             "john.doe@example.com", 
@@ -80,13 +84,13 @@ public class AccountTest {
             );
         });
 
-        Assertions.assertEquals("Invalid name", exception.getMessage());
+        assertEquals("Invalid name", exception.getMessage());
     }
 
     @Test
     @DisplayName("Não deve criar conta com email inválido")
     void shouldNotCreateAnAccountWithInvalidEmail() {
-        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        var exception = assertThrows(IllegalArgumentException.class, () -> {
             new Account(
             "John Doe", 
             "john.doe.example.com", 
@@ -95,13 +99,13 @@ public class AccountTest {
             );
         });
 
-        Assertions.assertEquals("Invalid email", exception.getMessage());
+        assertEquals("Invalid email", exception.getMessage());
     }
 
     @Test
     @DisplayName("Não deve criar conta com documento inválido")
     void shouldNotCreateAnAccountWithInvalidDocument() {
-        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        var exception = assertThrows(IllegalArgumentException.class, () -> {
             new Account(
             "John Doe", 
             "john.doe@example.com", 
@@ -110,13 +114,13 @@ public class AccountTest {
             );
         });
 
-        Assertions.assertEquals("Invalid document", exception.getMessage());
+        assertEquals("Invalid document", exception.getMessage());
     }
 
     @Test
     @DisplayName("Não deve criar conta com senha inválida")
     void shouldNotCreateAnAccountWithInvalidPassword() {
-        var exception = Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        var exception = assertThrows(IllegalArgumentException.class, () -> {
             new Account(
             "John Doe", 
             "john.doe@example.com", 
@@ -125,14 +129,15 @@ public class AccountTest {
             );
         });
 
-        Assertions.assertEquals("Invalid password", exception.getMessage());
+        assertEquals("Invalid password", exception.getMessage());
     }
 
     @Test
     @DisplayName("Deve depositar um valor positivo")
     void shouldDepositAmount() {
         account.depositAmount(AssetEnum.BTC, 100.0);
-        Assertions.assertEquals(100.0, account.getBalance(AssetEnum.BTC));
+
+        assertEquals(100.0, account.getBalance(AssetEnum.BTC).getAmount());
     }
 
     @Test
@@ -140,47 +145,58 @@ public class AccountTest {
     void shouldAccumulateBalance() {
         account.depositAmount(AssetEnum.BTC, 100.0);
         account.depositAmount(AssetEnum.BTC, 50.0);
-        Assertions.assertEquals(150.0, account.getBalance(AssetEnum.BTC));
+        
+        assertEquals(150.0, account.getBalance(AssetEnum.BTC).getAmount());
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao depositar valor negativo")
     void shouldThrowExceptionWhenDepositNegativeAmount() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        var exception = assertThrows(IllegalArgumentException.class, () -> {
             account.depositAmount(AssetEnum.BTC, -10.0);
         });
+
+        assertEquals(exception.getMessage(), "Amount must not be negative");
     }
 
     @Test
     @DisplayName("Deve sacar um valor quando houver saldo suficiente")
     void shouldWithdrawAmount() throws Exception {
-        account.depositAmount(AssetEnum.USDT, 200.0);
-        account.withdrawAmount(AssetEnum.USDT, 50.0);
-        Assertions.assertEquals(150.0, account.getBalance(AssetEnum.USDT));
+        account.depositAmount(AssetEnum.USD, 200.0);
+        account.withdrawAmount(AssetEnum.USD, 50.0);
+
+        assertEquals(150.0, account.getBalance(AssetEnum.USD).getAmount());
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao sacar valor maior que o saldo")
     void shouldThrowExceptionWhenWithdrawInsufficientFunds() {
-        account.depositAmount(AssetEnum.USDT, 50.0);
-        Assertions.assertThrows(Exception.class, () -> {
-            account.withdrawAmount(AssetEnum.USDT, 100.0);
+        account.depositAmount(AssetEnum.USD, 50.0);
+        var exception = assertThrows(Exception.class, () -> {
+            account.withdrawAmount(AssetEnum.USD, 100.0);
         });
+
+        assertEquals(exception.getMessage(), "Insufficient funds");
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao sacar ativo sem saldo")
+    @DisplayName("Deve lançar exceção ao sacar de um ativo que não existe na conta")
     void shouldThrowExceptionWhenWithdrawNoAsset() {
-        Assertions.assertThrows(Exception.class, () -> {
+        var exception = assertThrows(Exception.class, () -> {
             account.withdrawAmount(AssetEnum.BTC, 10.0);
         });
+
+        assertEquals(exception.getMessage(), "Insufficient funds");
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao sacar valor negativo")
     void shouldThrowExceptionWhenWithdrawNegativeAmount() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            account.withdrawAmount(AssetEnum.USDT, -10.0);
+        account.depositAmount(AssetEnum.USD, 100.0);
+        var exception = assertThrows(RuntimeException.class, () -> {
+            account.withdrawAmount(AssetEnum.USD, -10.0);
         });
+
+        assertEquals(exception.getMessage(), "Amount must not be negative");
     }
 }

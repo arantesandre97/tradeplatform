@@ -2,7 +2,7 @@ drop schema if exists ccca;
 
 create schema ccca;
 
-create table ccca.account (
+create table account (
     account_id uuid primary key,
     name text,
     email text,
@@ -10,10 +10,10 @@ create table ccca.account (
     password text
 );
 
-creata table ccca.balance (
-    account_id uuid references ccca.account(account_id),
+create table balance (
+    account_id uuid references account(account_id),
     asset_id text,
     amount bigint,
-    last_update_date timestamp
+    last_update_date timestamp,
     primary key (account_id, asset_id)
 );
