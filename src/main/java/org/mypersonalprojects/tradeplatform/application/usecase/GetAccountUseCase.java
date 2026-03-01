@@ -1,7 +1,5 @@
 package org.mypersonalprojects.tradeplatform.application.usecase;
 
-import java.util.UUID;
-
 import org.mypersonalprojects.tradeplatform.domain.Account;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountRepository;
 
@@ -12,7 +10,7 @@ public class GetAccountUseCase {
         this.accountRepository = accountRepository;
     }
 
-    public Account execute(UUID accountId) {
-        return accountRepository.get(accountId);
+    public Account execute(String accountId) {
+        return accountRepository.getByAccountId(accountId);
     }
 }

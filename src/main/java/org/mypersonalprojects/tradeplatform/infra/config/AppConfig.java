@@ -7,6 +7,8 @@ import org.mypersonalprojects.tradeplatform.application.usecase.WithdrawUseCase;
 import org.mypersonalprojects.tradeplatform.infra.controller.AccountController;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountDatabaseRepository;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountRepository;
+import org.mypersonalprojects.tradeplatform.infra.repository.OrderDatabaseRepository;
+import org.mypersonalprojects.tradeplatform.infra.repository.OrderRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,6 +18,11 @@ public class AppConfig {
     @Bean
     public AccountRepository accountRepository(JdbcTemplate jdbcTemplate) {
         return new AccountDatabaseRepository(jdbcTemplate);
+    }
+
+    @Bean
+    public OrderRepository orderRepository(JdbcTemplate JdbcTemplatejdbcTemplate) {
+        return new OrderDatabaseRepository(JdbcTemplatejdbcTemplate);
     }
 
     @Bean

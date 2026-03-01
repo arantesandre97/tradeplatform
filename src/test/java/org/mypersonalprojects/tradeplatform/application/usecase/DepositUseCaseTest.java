@@ -12,8 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mypersonalprojects.tradeplatform.domain.Account;
-import org.mypersonalprojects.tradeplatform.domain.AssetEnum;
-import org.mypersonalprojects.tradeplatform.infra.dto.BalanceDTO;
+import org.mypersonalprojects.tradeplatform.domain.Balance.Asset;
+import org.mypersonalprojects.tradeplatform.infra.dto.BalanceDto;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountDatabaseRepository;
 
 public class DepositUseCaseTest {
@@ -36,21 +36,21 @@ public class DepositUseCaseTest {
             "Password@123"
         );
 
-        var balanceDto = new BalanceDTO("BTC", 100.0);
+        var balanceDto = new BalanceDto("BTC", 100.0);
 
-        when(accountRepository.get(account.getId())).thenReturn(account);
+        when(accountRepository.getByAccountId(account.getId())).thenReturn(account);
 
         depositUseCase.execute(account.getId(), balanceDto);
-        assertEquals(account.getBalance(AssetEnum.BTC).getAmount(), 100.0);
+        assertEquals(account.getBalance(Asset.BTC.toString()).get().getAmount(), 100.0);
     }
 
     @Test
     @DisplayName("Não deve realizar deposito se a conta não existir")
     void shouldThrowExceptionWhenDepositAmount() {
-        var accountId = UUID.randomUUID();
-        var balanceDto = new BalanceDTO("BTC", 100.0);
+        var accountId = UUID.randomUUID().toString();
+        var balanceDto = new BalanceDto("BTC", 100.0);
 
-        when(accountRepository.get(any(UUID.class))).thenThrow(new RuntimeException("Account not found"));
+        when(accountRepository.getByAccountId(any(String.class))).thenThrow(new RuntimeException("Account not found"));
 
         var exception = assertThrows(RuntimeException.class, () -> 
             depositUseCase.execute(accountId, balanceDto)

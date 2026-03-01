@@ -7,14 +7,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
-import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mypersonalprojects.tradeplatform.domain.Account;
-import org.mypersonalprojects.tradeplatform.infra.dto.AccountDTO;
+import org.mypersonalprojects.tradeplatform.infra.dto.AccountDto;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountDatabaseRepository;
 
 public class CreateAccountUseCaseTest {
@@ -30,7 +28,7 @@ public class CreateAccountUseCaseTest {
     @Test
     @DisplayName("Deve criar uma conta com sucesso")
     void shouldCreateAnAccount() {
-        AccountDTO accountDto = new AccountDTO(
+        AccountDto accountDto = new AccountDto(
             "John Doe", 
             "john.doe@example.com", 
             "62573679055", 
@@ -38,12 +36,12 @@ public class CreateAccountUseCaseTest {
             new HashMap<>()
         );
 
-        UUID returnedId = createAccountUseCase.execute(accountDto);
+        var returnedId = createAccountUseCase.execute(accountDto);
 
         assertNotNull(returnedId);
 
         ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
-        verify(accountRepository).save(accountCaptor.capture());
+        verify(accountRepository).saveAccount((accountCaptor.capture()));
 
         Account capturedAccount = accountCaptor.getValue();
         assertEquals(returnedId, capturedAccount.getId());
@@ -52,7 +50,7 @@ public class CreateAccountUseCaseTest {
     @Test
     @DisplayName("Não deve criar uma conta com algum atributo invalido")
     void shouldThrowExceptionWhenCreateAccount() {
-        AccountDTO accountDto = new AccountDTO(
+        AccountDto accountDto = new AccountDto(
             "John Doe", 
             "john.doe@example.com", 
             "62573679050", 

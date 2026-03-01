@@ -1,37 +1,28 @@
 package org.mypersonalprojects.tradeplatform.domain;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Account {
     private UUID id;
-    private String name;
-    private String email;
-    private String document;
-    private String password;
+    private Name name;
+    private Email email;
+    private Document document;
+    private Password password;
     private List<Balance> balances;
 
-    @JsonCreator
-    public Account(@JsonProperty("name") String name,
-            @JsonProperty("email") String email,
-            @JsonProperty("document") String document,
-            @JsonProperty("password") String password) {
+    public Account(String name, String email, String document, String password) {
         this.id = UUID.randomUUID();
-        this.name = isValidName(name);
-        this.email = isValidEmail(email);
-        this.document = isValidDocument(document);
-        this.password = isValidPassword(password);
+        this.name = new Name(name);
+        this.email = new Email(email);
+        this.document = new Document(document);
+        this.password = Password.create(password);
         this.balances = new ArrayList<>();
     }
 
-    private Account(UUID id, String name, String email, String document, String password, List<Balance> balances) {
+    private Account(UUID id, Name name, Email email, Document document, Password password, List<Balance> balances) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -42,98 +33,82 @@ public class Account {
 
     public static Account restore(UUID id, String name, String email, String document, String password,
             List<Balance> balances) {
-        return new Account(id, name, email, document, password, balances);
+        return new Account(id, new Name(name), new Email(email), new Document(document), Password.restore(password), balances);
     }
 
-    public void depositAmount(AssetEnum asset, Double amount) {
-        balances.stream()
-                .filter(b -> b.getAsset().equals(asset))
-                .findFirst()
-                .ifPresentOrElse(b -> b.depositAmount(amount), () -> {
-                    balances.add(new Balance(asset, amount));
-                });
-    }
+    public void depositAmount(String asset, Double amount) {
+        var balance = getBalance(asset);
 
-    public void withdrawAmount(AssetEnum asset, Double amount) throws Exception {
-        balances.stream()
-                .filter(b -> b.getAsset().equals(asset))
-                .findFirst()
-                .ifPresentOrElse(b -> {
-                    try {
-                        b.withdrawAmount(amount);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e.getMessage());
-                    }
-                }, () -> {
-                    throw new RuntimeException("Insufficient funds");
-                });
-    }
-
-    private String isValidName(String name) {
-        if (name.isBlank() || !name.matches("[\\p{L} ]+") || name.split(" ").length < 2) {
-            throw new IllegalArgumentException("Invalid name");
-        }
-
-        return name;
-    }
-
-    private String isValidEmail(String email) {
-        if (email.isBlank() || !email.contains("@")) {
-            throw new IllegalArgumentException("Invalid email");
-        }
-
-        return email;
-    }
-
-    private String isValidDocument(String document) {
-        if (!ValidateCpf.isValid(document)) {
-            throw new IllegalArgumentException("Invalid document");
-        }
-
-        return document.replaceAll("\\D", "");
-    }
-
-    private String isValidPassword(String password) {
-        if (password == null || !password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).{8,}$")) {
-            throw new IllegalArgumentException("Invalid password");
-        }
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedhash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(encodedhash);
-        } catch (Exception e) {
-            throw new RuntimeException("Error hashing password", e);
+        if (balance.isPresent()) {
+            balance.get().depositAmount(amount);
+        } else {
+            balances.add(new Balance(asset, amount));
         }
     }
 
-    public UUID getId() {
-        return id;
+    public void withdrawAmount(String asset, Double amount) throws Exception {
+        var balance = getBalance(asset);
+
+        if (balance.isPresent()) {
+            balance.get().withdrawAmount(amount);
+        } else {
+            throw new Exception("Insufficient funds");
+        }
+    }
+
+    public void simulateBalanceLiquidation(String outAsset, Double amount) throws Exception {
+        var outBalance = getBalance(outAsset);
+
+        if (outBalance.isPresent()) {
+            outBalance.get().blockAmount(amount);
+        } else {
+            throw new Exception("Insufficient funds");
+        }
+    }
+
+    public void liquidate(String inAsset, String outAsset, Double amount) throws Exception {
+        var outBalance = getBalance(outAsset);
+
+        if(!outBalance.isPresent())
+            throw new Exception("Insufficient funds");
+
+        outBalance.get().liquidateAmount(amount);
+        var inBalance = getBalance(inAsset);
+
+        if(inBalance.isPresent()){
+            inBalance.get().depositAmount(amount);
+        } else {
+            balances.add(new Balance(inAsset, amount));
+        }
+    }
+
+    public String getId() {
+        return id.toString();
     }
 
     public String getName() {
-        return name;
+        return name.getValue();
     }
 
     public String getEmail() {
-        return email;
+        return email.getValue();
     }
 
     public String getDocument() {
-        return document;
+        return document.getValue();
     }
 
     public String getPassword() {
-        return password;
+        return password.getValue();
     }
 
     public List<Balance> getBalances() {
         return balances;
     }
 
-    public Balance getBalance(AssetEnum asset) {
+    public Optional<Balance> getBalance(String asset) {
         return balances.stream()
                 .filter(b -> b.getAsset().equals(asset))
-                .findFirst().orElse(new Balance(asset, 0.0));
+                .findFirst();
     }
 }

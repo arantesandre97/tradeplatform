@@ -34,7 +34,7 @@ public class GetAccountUseCaseTest {
             "Password@123"
         );
 
-        when(accountRepository.get(account.getId())).thenReturn(account);
+        when(accountRepository.getByAccountId(account.getId())).thenReturn(account);
 
         var returnedAccount = getAccountUseCase.execute(account.getId());
         assertEquals(account, returnedAccount);
@@ -43,9 +43,9 @@ public class GetAccountUseCaseTest {
     @Test
     @DisplayName("Não deve retornar uma conta quando não existir")
     void shouldReturnAccountNotFound(){
-        when(accountRepository.get(any(UUID.class))).thenThrow(new RuntimeException("Account not found"));
+        when(accountRepository.getByAccountId(any(String.class))).thenThrow(new RuntimeException("Account not found"));
 
-        var exception = assertThrows(RuntimeException.class, () -> getAccountUseCase.execute(UUID.randomUUID()));
+        var exception = assertThrows(RuntimeException.class, () -> getAccountUseCase.execute(UUID.randomUUID().toString()));
         assertEquals("Account not found", exception.getMessage());
     }
 }

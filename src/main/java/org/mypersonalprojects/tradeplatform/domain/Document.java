@@ -1,8 +1,21 @@
 package org.mypersonalprojects.tradeplatform.domain;
 
-public class ValidateCpf {
-    public static boolean isValid(String cpf) {
-        if (cpf.isBlank())
+public class Document {
+    private final String value;
+
+    public Document(String document) {
+        if (!isValid(document)) {
+            throw new IllegalArgumentException("Invalid document");
+        }
+        this.value = document.replaceAll("\\D", "");
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    private static boolean isValid(String cpf) {
+        if (cpf == null ||cpf.isBlank())
             return false;
 
         cpf = cpf.replaceAll("\\D", "");

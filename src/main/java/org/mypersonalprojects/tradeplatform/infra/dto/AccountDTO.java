@@ -8,31 +8,31 @@ import org.mypersonalprojects.tradeplatform.domain.Balance;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class AccountDTO {
+public class AccountDto {
     private String name;
     private String email;
     private String document;
     private String password;
-    private HashMap<String, Double> balance;
+    private HashMap<String, Double> balances;
 
     @JsonCreator
-    public AccountDTO(String name, String email, String document, String password, HashMap<String, Double> balance) {
+    public AccountDto(String name, String email, String document, String password, HashMap<String, Double> balances) {
         this.name = name;
         this.email = email;
         this.document = document;
         this.password = password;
-        this.balance = balance;
+        this.balances = balances;
     }
 
     //TODO fazer um mapper
-    public AccountDTO(String name, String email, String document, List<Balance> balances) {
+    public AccountDto(String name, String email, String document, List<Balance> balances) {
         this.name = name;
         this.email = email;
         this.document = document;
-        this.balance = new HashMap<>();
+        this.balances = new HashMap<>();
         if (balances != null) {
             for (var b : balances) {
-                this.balance.put(b.getAsset().name(), b.getAmount());
+                this.balances.put(b.getAsset(), b.getAmount());
             }
         }
     }
@@ -55,6 +55,6 @@ public class AccountDTO {
     }
 
     public HashMap<String, Double> getBalance() {
-        return balance;
+        return balances;
     }
 }

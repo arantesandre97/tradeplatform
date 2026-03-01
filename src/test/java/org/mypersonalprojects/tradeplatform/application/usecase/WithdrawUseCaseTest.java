@@ -9,8 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mypersonalprojects.tradeplatform.domain.Account;
-import org.mypersonalprojects.tradeplatform.domain.AssetEnum;
-import org.mypersonalprojects.tradeplatform.infra.dto.BalanceDTO;
+import org.mypersonalprojects.tradeplatform.domain.Balance.Asset;
+import org.mypersonalprojects.tradeplatform.infra.dto.BalanceDto;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountDatabaseRepository;
 
 public class WithdrawUseCaseTest {
@@ -33,14 +33,14 @@ public class WithdrawUseCaseTest {
             "Password@123"
         );
 
-        account.depositAmount(AssetEnum.BTC, 150.0);
+        account.depositAmount(Asset.BTC.toString(), 150.0);
 
-        var balanceDto = new BalanceDTO("BTC", 100.0);
+        var balanceDto = new BalanceDto("BTC", 100.0);
 
-        when(accountRepository.get(account.getId())).thenReturn(account);
+        when(accountRepository.getByAccountId(account.getId())).thenReturn(account);
 
         withdrawUseCase.execute(account.getId(), balanceDto);
-        assertEquals(account.getBalance(AssetEnum.BTC).getAmount(), 50.0);
+        assertEquals(account.getBalance(Asset.BTC.toString()).get().getAmount(), 50.0);
     }
 
     @Test
@@ -53,11 +53,11 @@ public class WithdrawUseCaseTest {
             "Password@123"
         );
 
-        account.depositAmount(AssetEnum.BTC, 50.0);
+        account.depositAmount(Asset.BTC.toString().toString(), 50.0);
 
-        var balanceDto = new BalanceDTO("BTC", 100.0);
+        var balanceDto = new BalanceDto("BTC", 100.0);
 
-        when(accountRepository.get(account.getId())).thenReturn(account);
+        when(accountRepository.getByAccountId(account.getId())).thenReturn(account);
 
         var exception = assertThrows(Exception.class, () -> 
             withdrawUseCase.execute(account.getId(), balanceDto)
@@ -76,11 +76,11 @@ public class WithdrawUseCaseTest {
             "Password@123"
         );
 
-        account.depositAmount(AssetEnum.BTC, 50.0);
+        account.depositAmount(Asset.BTC.toString().toString(), 50.0);
 
-        var balanceDto = new BalanceDTO("USD", 100.0);
+        var balanceDto = new BalanceDto("USD", 100.0);
 
-        when(accountRepository.get(account.getId())).thenReturn(account);
+        when(accountRepository.getByAccountId(account.getId())).thenReturn(account);
 
         var exception = assertThrows(Exception.class, () -> 
             withdrawUseCase.execute(account.getId(), balanceDto)

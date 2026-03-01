@@ -9,3 +9,5 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: app
+    tmpfs:
+      - /var/lib/postgresql/data

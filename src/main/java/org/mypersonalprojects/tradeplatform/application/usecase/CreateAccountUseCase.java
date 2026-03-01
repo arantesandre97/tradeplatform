@@ -1,9 +1,7 @@
 package org.mypersonalprojects.tradeplatform.application.usecase;
 
-import java.util.UUID;
-
 import org.mypersonalprojects.tradeplatform.domain.Account;
-import org.mypersonalprojects.tradeplatform.infra.dto.AccountDTO;
+import org.mypersonalprojects.tradeplatform.infra.dto.AccountDto;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountRepository;
 
 public class CreateAccountUseCase {
@@ -13,10 +11,10 @@ public class CreateAccountUseCase {
         this.accountRespository = accountRespository;
     }
 
-    public UUID execute(AccountDTO accountDto) {
+    public String execute(AccountDto accountDto) {
         var account = new Account(accountDto.getName(), accountDto.getEmail(), accountDto.getDocument(),
                 accountDto.getPassword());
-        accountRespository.save(account);
+        accountRespository.saveAccount(account);
         return account.getId();
     }
 }

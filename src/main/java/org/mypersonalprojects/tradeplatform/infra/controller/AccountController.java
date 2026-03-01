@@ -1,14 +1,12 @@
 package org.mypersonalprojects.tradeplatform.infra.controller;
 
 import java.net.URI;
-import java.util.UUID;
-
 import org.mypersonalprojects.tradeplatform.application.usecase.CreateAccountUseCase;
 import org.mypersonalprojects.tradeplatform.application.usecase.DepositUseCase;
 import org.mypersonalprojects.tradeplatform.application.usecase.GetAccountUseCase;
 import org.mypersonalprojects.tradeplatform.application.usecase.WithdrawUseCase;
-import org.mypersonalprojects.tradeplatform.infra.dto.AccountDTO;
-import org.mypersonalprojects.tradeplatform.infra.dto.BalanceDTO;
+import org.mypersonalprojects.tradeplatform.infra.dto.AccountDto;
+import org.mypersonalprojects.tradeplatform.infra.dto.BalanceDto;
 import org.mypersonalprojects.tradeplatform.infra.repository.AccountRepository;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +32,8 @@ public class AccountController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signUp(@RequestBody org.mypersonalprojects.tradeplatform.infra.dto.AccountDTO accountDto) {
+    public ResponseEntity<Void> signUp(
+            @RequestBody AccountDto accountDto) {
         try {
             var accountId = createAccountUseCase.execute(accountDto);
             var accountLocation = String.format("/accounts/%s", accountId);
@@ -45,23 +44,26 @@ public class AccountController {
     }
 
     @GetMapping("/accounts/{accountId}")
-    public ResponseEntity<AccountDTO> getAccount(@PathVariable UUID accountId) {
+    public ResponseEntity<AccountDto> getAccount(@PathVariable String accountId) {
         try {
             var account = getAccountUseCase.execute(accountId);
-            var accountDto = new org.mypersonalprojects.tradeplatform.infra.dto.AccountDTO(
+            var accountDto = new AccountDto(
                 account.getName(),
                 account.getEmail(),
                 account.getDocument(),
                 account.getBalances()
             );
             return ResponseEntity.ok(accountDto);
-        } catch (EmptyResultDataAccessException e) {
+        }
+        catch (EmptyResultDataAccessException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
     @PostMapping("/accounts/{accountId}/deposit")
-    public ResponseEntity<Void> deposit(@PathVariable UUID accountId, @RequestBody BalanceDTO balanceDto) {
+    public ResponseEntity<Void> deposit(@PathVariable String accountId, @RequestBody BalanceDto balanceDto) {
         try {
             depositUseCase.execute(accountId, balanceDto);
             return ResponseEntity.noContent().build();
@@ -71,7 +73,7 @@ public class AccountController {
     }
 
     @PostMapping("/accounts/{accountId}/withdraw")
-    public ResponseEntity<Void> withdraw(@PathVariable UUID accountId, @RequestBody BalanceDTO balanceDto) {
+    public ResponseEntity<Void> withdraw(@PathVariable String accountId, @RequestBody BalanceDto balanceDto) {
         try {
             withdrawUseCase.execute(accountId, balanceDto);
             return ResponseEntity.noContent().build();
